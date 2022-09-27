@@ -3,7 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { ethers } from 'ethers';
 import { CoinchainStaking__factory, CoinchainToken__factory } from 'typechain';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { AppService as AppServiceWithFireblocks } from './app.service';
+import { AppService as AppServiceWithoutFireblocks } from './app.stakingService';
 
 const coinchainStakingFactory = {
   provide: "CoinchainStaking",
@@ -31,7 +32,7 @@ const coinchainTokenFactory = {
   ],
   controllers: [AppController],
   providers: [
-    AppService,
+    AppServiceWithoutFireblocks,
     coinchainStakingFactory,
     coinchainTokenFactory
   ],
