@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ethers } from 'ethers';
-import { CoinchainStaking__factory, CoinchainToken__factory } from 'typechain';
+import { CoinchainStaking__factory } from '../typechain/factories/CoinchainStaking__factory';
+import { CoinchainToken__factory } from '../typechain/factories/CoinchainToken__factory';
 import { AppController } from './app.controller';
 import { AppService as AppServiceWithFireblocks } from './app.service';
 import { AppService as AppServiceWithoutFireblocks } from './app.stakingService';

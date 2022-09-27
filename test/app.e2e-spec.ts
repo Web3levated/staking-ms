@@ -21,4 +21,13 @@ describe('AppController (e2e)', () => {
       .expect(200)
       .expect('Hello World!');
   });
+
+  it('/createStakes (GET)', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/createStakes');
+
+    expect(response.status).toEqual(200);
+    console.log(response);
+    expect(response.text).toEqual("createStakes called in AppServiceWithoutFireblocks");
+  })
 });

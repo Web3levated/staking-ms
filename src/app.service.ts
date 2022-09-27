@@ -1,8 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { time } from 'console';
-import { PopulatedTransaction } from 'ethers';
+import { ethers, PopulatedTransaction } from 'ethers';
 import { Chain, EthersBridge, FireblocksSDK } from 'fireblocks-defi-sdk';
 import { CoinchainStaking, CoinchainToken } from 'typechain';
+import { CreateTransactionResponse,  PeerType, TransactionOperation, TransactionArguments } from "fireblocks-sdk";
+import * as fs from "fs";
 
 @Injectable()
 export class AppService {
@@ -19,10 +21,10 @@ export class AppService {
   }
 
   async createStakes() : Promise<string> {
-    const apiSecret = process.env.FIREBLOCKS_API_SECRET_PATH;
+    const apiSecret = fs.readFileSync(process.env.FIREBLOCKS_API_SECRET_PATH, "utf8");
     const apiKey = process.env.FIREBLOCKS_API_KEY;
     const fireblocksApiBaseUrl = process.env.FIREBLOCKS_API_BASE_URL;
-    const vaultAccount = process.env.FIREBLOCKS_CCH_VAULT;
+    // const vaultAccount = process.env.FIREBLOCKS_CCH_VAULT;
     const fireblocksApiClient = new FireblocksSDK(apiSecret, apiKey, fireblocksApiBaseUrl);
     // const bridge = new EthersBridge({
     //   fireblocksApiClient,
@@ -44,10 +46,37 @@ export class AppService {
     // const txHash = await bridge.waitForTxHash(res.id);
     const tokenBridge = new EthersBridge({
       fireblocksApiClient,
-      vaultAccountId: vaultAccount,
-      externalWalletId: this.coinchainToken.address,
+      vaultAccountId: process.env.FIREBLOCKS_SOURCE_VAULT_ACCOUNT,
+      externalWalletId: process.env.FIREBLOCKS_EXTERNAL_WALLET,
       chain: Chain.GOERLI
     });
-    return "createStakes called";
+    const transaction: PopulatedTransaction = await this.coinchainToken.populateTransaction.approve("0x2C8C6D4b360bf3ce7B2b641B27D0c7534A63E99F", ethers.utils.parseEther("100"));
+    // const txArguments: TransactionArguments = {
+    //   operation: TransactionOperation.CONTRACT_CALL,
+    //   assetId: "CCHTEST1",
+    //   source: {
+    //       type: PeerType.VAULT_ACCOUNT,
+    //       id: process.env.FIREBLOCKS_SOURCE_VAULT_ACCOUNT
+    //   },
+    //   gasPrice: transaction.gasPrice != undefined ? ethers.utils.formatUnits(transaction.gasPrice.toString(), "gwei") : undefined,
+    //   gasLimit: transaction.gasLimit?.toString(),
+    //   destination: {
+    //       type: PeerType.EXTERNAL_WALLET,
+    //       id: this.coinchainToken.address
+    //   },
+    //   amount: ethers.utils.formatEther(transaction.value?.toString() || "0"),
+    //   extraParameters: {
+    //       contractCallData: transaction.data
+    //   }
+    // };
+    let res: CreateTransactionResponse;
+    try{
+      res = await tokenBridge.sendTransaction(transaction);
+    }catch(e){
+      console.log(e);
+      throw e;
+    }
+    const txHash = await tokenBridge.waitForTxHash(res.id);
+    return "token approval tx: " + txHash;
   }
 }

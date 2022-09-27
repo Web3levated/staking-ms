@@ -19,4 +19,10 @@ describe('AppController', () => {
       expect(appController.getHello()).toBe('Hello World!');
     });
   });
+
+  // describe('createStakes', () => {
+  //   it('should return a string', async () => {
+  //     expect(await appController.createStakes()).toBe("createStakes called in AppServiceWithoutFireblocks");
+  //   })
+  // })
 });
