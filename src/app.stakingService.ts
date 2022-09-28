@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import { CoinchainToken } from 'typechain/CoinchainToken';
 import { CoinchainStaking } from 'typechain/CoinchainStaking';
 import { Deposit } from './model/CreateStakesRequest';
+import { min } from 'rxjs';
 
 @Injectable()
 export class AppService {
@@ -20,12 +21,9 @@ export class AppService {
 
   async createStakes(deposits: Deposit[]) : Promise<string> {
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.coinchainToken.provider);
-    console.log("SignerBalance: ", await this.coinchainToken.balanceOf(signer.address));
-    console.log("yieldConfig1: ", await this.coinchainStaking.yieldConfigs(1));
-    let approvalTx = await this.coinchainToken.connect(signer).approve(this.coinchainStaking.address, ethers.utils.parseEther("100"));
+    // let approvalTx = await this.coinchainToken.connect(signer).approve(this.coinchainStaking.address, ethers.utils.parseEther("100"));
     let depositTx = await this.coinchainStaking.connect(signer).deposit(deposits.map((deposit) => this.buildDepositPayload(deposit)));
-    console.log("approvalTx: ", approvalTx.hash);
-
+    await depositTx.wait();
 
     return depositTx.hash;
   }
@@ -33,13 +31,15 @@ export class AppService {
   async withdraw(depositId: number) : Promise<string> {
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.coinchainStaking.provider);
     let withdrawTx = await this.coinchainStaking.connect(signer).withdraw(depositId);
-
+    await withdrawTx.wait();
+    
     return withdrawTx.hash;
   }
 
   async withdrawNoReward(depositId: number) : Promise<string> {
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.coinchainStaking.provider);
     let withdrawNoRewardTx = await this.coinchainStaking.connect(signer).withdrawNoReward(depositId);
+    await withdrawNoRewardTx.wait();
 
     return withdrawNoRewardTx.hash;
   }
@@ -47,7 +47,10 @@ export class AppService {
   async mint() : Promise<string> {
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.coinchainStaking.provider);
     let mintTx = await this.coinchainStaking.connect(signer).mint();
-
+    const receipt = await mintTx.wait();
+    console.log(receipt.events);
+    const tokensMinted = receipt.events.pop().args[0]; 
+    
     return mintTx.hash;
   }
 
@@ -55,10 +58,10 @@ export class AppService {
     return {
       depositId: deposit.depositId,
       data: {
-        user: deposit.data.user,
-        amount: ethers.utils.parseEther(deposit.data.amount.toString()),
-        yieldConfigId: deposit.data.yieldConfigId,
-        depositTime: deposit.data.depositTime
+        user: deposit.user,
+        amount: ethers.utils.parseEther(deposit.amount.toString()),
+        yieldConfigId: deposit.yieldConfigId,
+        depositTime: deposit.depositTime
       }
     }
   }

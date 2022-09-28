@@ -1,13 +1,15 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Logger, HttpCode } from '@nestjs/common';
 import { ApiProperty, ApiBody, ApiOkResponse } from "@nestjs/swagger"
 import { AppService } from './app.stakingService';
 import { CreateStakesRequest } from './model/CreateStakesRequest';
 import { UnstakeRequest } from './model/UnstakeRequest';
 import { GenericResponse } from './model/GenericResponse';
+import { MintRequest } from './model/MintRequest'
 
 
 @Controller()
 export class AppController {
+  private readonly logger = new Logger(AppController.name);
   constructor(private readonly appService: AppService) {}
 
   @Get()
@@ -16,20 +18,20 @@ export class AppController {
   }
 
   @Post('createStakes')
+  @HttpCode(200)
   @ApiOkResponse({
     description: "Tokens successfully deposited.",
     type: GenericResponse
   })
   @ApiBody({type: CreateStakesRequest})
   async createStakes(@Body() request: CreateStakesRequest): Promise<GenericResponse>{
-    console.log(request);
 
     const depositTxHash = await this.appService.createStakes(request.deposits);
     const response =  {
       requestId: request.requestId,
       txHash: depositTxHash
     };
-    console.log(JSON.stringify({
+    this.logger.log(JSON.stringify({
       requestId: request.requestId,
       request: request,
       response: response
@@ -38,20 +40,69 @@ export class AppController {
   }
 
  @Post('unstake')
+ @HttpCode(200)
+ @ApiOkResponse({
+  description: "Deposit ID succesfully unstaked",
+  type: GenericResponse
+ })
  @ApiBody({type: UnstakeRequest})
- async unstake(@Body() request: UnstakeRequest): Promise<string>{
-    return this.appService.withdraw(request.depositId);
+ async unstake(@Body() request: UnstakeRequest): Promise<GenericResponse>{
+
+    const unstakeTxHash = await this.appService.withdraw(request.depositId);
+    const response = {
+      requestId: request.requestId,
+      txHash: unstakeTxHash
+    }
+    this.logger.log(JSON.stringify({
+      requestId: request.requestId,
+      request: request,
+      response: response
+    }));
+    return response;
  }
 
  @Post('unstakeNoReward')
+ @HttpCode(200)
+ @ApiOkResponse({
+  description: "Deposit ID succesfully unstaked",
+  type: GenericResponse
+ })
  @ApiBody({type: UnstakeRequest})
- async unstakeNoReward(@Body() request: UnstakeRequest): Promise<string>{
-    return this.appService.withdrawNoReward(request.depositId);
+ async unstakeNoReward(@Body() request: UnstakeRequest): Promise<GenericResponse>{
+
+  const unstakeNoRewardTxHash = await this.appService.withdrawNoReward(request.depositId);
+  const response = {
+    requestId: request.requestId,
+    txHash: unstakeNoRewardTxHash
+  }
+  this.logger.log(JSON.stringify({
+    requestId: request.requestId,
+    request: request,
+    response: response
+  }));
+    return response;
  }
 
  @Post('mint')
- async mint(): Promise<string>{
-  return this.appService.mint();
+ @HttpCode(200)
+ @ApiOkResponse({
+  description: "Total mint allowance succesfully minted",
+  type: GenericResponse
+ })
+ @ApiBody({type: MintRequest})
+ async mint(@Body() request: MintRequest): Promise<GenericResponse>{
+
+  const mintTxHash = await this.appService.mint();
+  const response = {
+    requestId: request.requestId,
+    txHash: mintTxHash
+  }
+  this.logger.log(JSON.stringify({
+    requestId: request.requestId,
+    request: request,
+    response: response
+  }));
+    return response;
  }
 }
 

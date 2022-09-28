@@ -1,8 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UnstakeRequest{
+export class MintRequest{
     @ApiProperty({type: String, description: "Unique identifier"})
     requestId: string;
-    @ApiProperty({type: Number, description: "Deposit ID to unstake"})
-    depositId: number
 }

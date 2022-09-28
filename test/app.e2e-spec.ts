@@ -2,18 +2,39 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
+import { CreateStakesRequest } from '../src/model/CreateStakesRequest';
+import { ethers } from "ethers";
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
 
+  const transactionResponseMock = {
+    wait: jest.fn(),
+    hash: jest.fn()
+  }
+  const coinchainStakingMock = {
+    connect: jest.fn(),
+    deposit: transactionResponseMock,
+    withdraw: transactionResponseMock,
+    withdrawNoReward: transactionResponseMock,
+    mint: transactionResponseMock
+  }
+
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider("CoinchainStaking")
+      .useValue(coinchainStakingMock)
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
   });
+
+  afterEach(async () => {
+    transactionResponseMock.wait.mockReset();
+  })
 
   it('/ (GET)', () => {
     return request(app.getHttpServer())
@@ -22,12 +43,36 @@ describe('AppController (e2e)', () => {
       .expect('Hello World!');
   });
 
-  it('/createStakes (GET)', async () => {
-    const response = await request(app.getHttpServer())
-      .get('/createStakes');
+  describe('/createStakes (POST)', () => {
+    it('Should create a single deposit', async () => {
 
-    expect(response.status).toEqual(200);
-    console.log(response);
-    expect(response.text).toEqual("createStakes called in AppServiceWithoutFireblocks");
+      coinchainStakingMock.connect.mockReturnValue({
+        deposit: jest.fn().mockReturnValue({
+          hash: "TestTransactionHash",
+          wait: jest.fn()
+        })
+      });
+
+      const testRequest: CreateStakesRequest = {
+        requestId: "TestRequestId",
+        deposits: [
+          {
+            depositId: 9,
+            user: ethers.Wallet.createRandom().address,
+            amount: 100,
+            yieldConfigId: 1,
+            depositTime: Math.floor(Date.now() / 1000)
+          }
+        ]
+      }
+
+      const response = await request(app.getHttpServer())
+        .post('/createStakes')
+        .send(testRequest)
+        
+      expect(response.status).toEqual(200);
+      expect(response.body.txHash).toEqual("TestTransactionHash");
+    })
   })
+
 });
