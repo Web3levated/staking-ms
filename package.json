@@ -27,6 +27,8 @@
     "@nestjs/core": "^8.0.0",
     "@nestjs/platform-express": "^8.0.0",
     "@nestjs/swagger": "^6.1.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.13.2",
     "ethers": "^5.7.1",
     "fireblocks-defi-sdk": "^1.2.5",
     "reflect-metadata": "^0.1.13",

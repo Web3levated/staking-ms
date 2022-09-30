@@ -37,6 +37,7 @@ export class AppService {
   }
 
   async withdrawNoReward(depositId: number) : Promise<string> {
+
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.coinchainStaking.provider);
     let withdrawNoRewardTx = await this.coinchainStaking.connect(signer).withdrawNoReward(depositId);
     await withdrawNoRewardTx.wait();
@@ -48,10 +49,20 @@ export class AppService {
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.coinchainStaking.provider);
     let mintTx = await this.coinchainStaking.connect(signer).mint();
     const receipt = await mintTx.wait();
-    console.log(receipt.events);
-    const tokensMinted = receipt.events.pop().args[0]; 
+    // console.log(receipt.events);
+    // const tokensMinted = receipt.events.pop().args[0]; 
     
     return mintTx.hash;
+  }
+
+  async depositIdExists(depositId: number) : Promise<boolean> {
+    const signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.coinchainStaking.provider);
+    const deposit = await this.coinchainStaking.connect(signer).deposits(depositId)
+    if (deposit.user == ethers.constants.AddressZero) {
+      return false; 
+    } else {
+      return true;
+    }
   }
 
   private buildDepositPayload(deposit: Deposit) : CoinchainStaking.DepositStruct {

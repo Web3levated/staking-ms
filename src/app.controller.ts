@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Logger, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Logger, HttpCode, BadRequestException, UseFilters } from '@nestjs/common';
 import { ApiProperty, ApiBody, ApiOkResponse } from "@nestjs/swagger"
 import { AppService } from './app.stakingService';
 import { CreateStakesRequest } from './model/CreateStakesRequest';
@@ -89,20 +89,27 @@ export class AppController {
   description: "Total mint allowance succesfully minted",
   type: GenericResponse
  })
+ @UseFilters()
  @ApiBody({type: MintRequest})
  async mint(@Body() request: MintRequest): Promise<GenericResponse>{
 
-  const mintTxHash = await this.appService.mint();
-  const response = {
-    requestId: request.requestId,
-    txHash: mintTxHash
+  try {
+    const mintTxHash = await this.appService.mint();
+    const response = {
+      requestId: request.requestId,
+      txHash: mintTxHash
+    }
+    this.logger.log(JSON.stringify({
+      requestId: request.requestId,
+      request: request,
+      response: response
+    }));
+      return response;
+  } catch (err) {
+    Logger.error(err.error.reason)
+    // console.log(err.error.reason)
+    throw new BadRequestException("Execution reverted", err.error.reason);
   }
-  this.logger.log(JSON.stringify({
-    requestId: request.requestId,
-    request: request,
-    response: response
-  }));
-    return response;
  }
 }
 
