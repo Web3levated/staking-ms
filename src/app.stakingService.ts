@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import { CoinchainToken } from 'typechain/CoinchainToken';
 import { CoinchainStaking } from 'typechain/CoinchainStaking';
 import { Deposit } from './model/CreateStakesRequest';
+import { ConfigRequest } from './model/ConfigRequest';
 import { min } from 'rxjs';
 
 @Injectable()
@@ -21,10 +22,10 @@ export class AppService {
 
   async createStakes(deposits: Deposit[]) : Promise<string> {
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.coinchainToken.provider);
-    // let approvalTx = await this.coinchainToken.connect(signer).approve(this.coinchainStaking.address, ethers.utils.parseEther("100"));
+    let approvalTx = await this.coinchainToken.connect(signer).approve(this.coinchainStaking.address, ethers.utils.parseEther("1000000"));
+    await approvalTx.wait();
     let depositTx = await this.coinchainStaking.connect(signer).deposit(deposits.map((deposit) => this.buildDepositPayload(deposit)));
     await depositTx.wait();
-
     return depositTx.hash;
   }
 
@@ -49,9 +50,10 @@ export class AppService {
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.coinchainStaking.provider);
     let mintTx = await this.coinchainStaking.connect(signer).mint();
     const receipt = await mintTx.wait();
-    // console.log(receipt.events);
-    // const tokensMinted = receipt.events.pop().args[0]; 
-    
+    this.coinchainStaking.filters.TokensMinted
+    console.log(receipt.logs);
+    const tokensMinted = parseInt(ethers.utils.formatEther(receipt.events.pop().topics[1])); 
+    console.log('Tokens minted: ', tokensMinted);
     return mintTx.hash;
   }
 
@@ -62,6 +64,20 @@ export class AppService {
       return false; 
     } else {
       return true;
+    }
+  }
+
+  async setYieldConfig(config: ConfigRequest) : Promise<string>{
+    const signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.coinchainStaking.provider);
+    const set = await this.coinchainStaking.connect(signer).setYieldConfig(config.yieldConfigId, this.buildConfigPayload(config))
+    await set.wait();
+    return set.hash;
+  }
+
+  private buildConfigPayload(config: ConfigRequest) : CoinchainStaking.YieldConfigStruct {
+    return {
+      lockupTime: config.lockUpTime,
+      rate: config.rate
     }
   }
 

@@ -1,10 +1,13 @@
 import { Controller, Get, Post, Body, Logger, HttpCode, BadRequestException, UseFilters } from '@nestjs/common';
+
 import { ApiProperty, ApiBody, ApiOkResponse } from "@nestjs/swagger"
 import { AppService } from './app.stakingService';
 import { CreateStakesRequest } from './model/CreateStakesRequest';
 import { UnstakeRequest } from './model/UnstakeRequest';
 import { GenericResponse } from './model/GenericResponse';
 import { MintRequest } from './model/MintRequest'
+import { ConfigRequest } from './model/ConfigRequest';
+import { request } from 'http';
 
 
 @Controller()
@@ -92,24 +95,38 @@ export class AppController {
  @UseFilters()
  @ApiBody({type: MintRequest})
  async mint(@Body() request: MintRequest): Promise<GenericResponse>{
-
-  try {
-    const mintTxHash = await this.appService.mint();
-    const response = {
-      requestId: request.requestId,
-      txHash: mintTxHash
-    }
-    this.logger.log(JSON.stringify({
-      requestId: request.requestId,
-      request: request,
-      response: response
-    }));
-      return response;
-  } catch (err) {
-    Logger.error(err.error.reason)
-    // console.log(err.error.reason)
-    throw new BadRequestException("Execution reverted", err.error.reason);
+  const mintTxHash = await this.appService.mint();
+  const response = {
+    requestId: request.requestId,
+    txHash: mintTxHash
   }
+  this.logger.log(JSON.stringify({
+    requestId: request.requestId,
+    request: request,
+    response: response
+  }));
+    return response;
  }
+
+ @Post('setYieldConfig')
+ @HttpCode(200)
+ @ApiOkResponse({
+  description: "Yield config succesfully set",
+  type: GenericResponse
+ })
+ async setYieldConfig(@Body() request: ConfigRequest): Promise<GenericResponse>{
+  const setTxHash = await this.appService.setYieldConfig(request);
+  const response = {
+    requestId: request.requestId,
+    txHash: setTxHash
+  }
+  this.logger.log(JSON.stringify({
+    requestId: request.requestId,
+    request: request,
+    response: response
+  }));
+    return response;
+ }
+
 }
 

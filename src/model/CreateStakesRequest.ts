@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+// import { IsEthereumAddress } from '../validators/IsEthereumAddress';
+import { IsUUID, IsNotEmpty, IsNumber, IsString, ValidateNested, IsEthereumAddress } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class Deposit{
     @IsNotEmpty()
@@ -8,7 +10,7 @@ export class Deposit{
     depositId: number;
 
     @IsNotEmpty()
-    @IsString()
+    @IsEthereumAddress({ message: 'User must be valid Ethereum address'})
     @ApiProperty({type: String, description: "User address"})
     user: string;
 
@@ -34,8 +36,10 @@ export class CreateStakesRequest{
     @ApiProperty({type: String, description: "Unique identifier"})
     requestId: string;
 
-    @IsNotEmpty()
     @ApiProperty({type: [Deposit], description: "List of deposits to create"})
+    @IsNotEmpty()
+    @ValidateNested( {each: true} )
+    @Type(() => Deposit)
     deposits: Deposit[];
 }
 
