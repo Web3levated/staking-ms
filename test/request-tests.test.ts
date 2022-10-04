@@ -33,18 +33,6 @@ describe('Request Tests', () => {
     await app.init();
   })
 
-  // beforeEach(async () => {
-  //   const moduleFixture: TestingModule = await Test.createTestingModule({
-  //     imports: [AppModule],
-  //   })
-  //     .overrideProvider('CoinchainStaking')
-  //     .useValue(coinchainStakingWithoutSignerMock)
-  //     .compile();
-
-  //   app = moduleFixture.createNestApplication();
-  //   await app.init();
-  // });
-
   afterEach(async () => {
     coinchainStakingMock.deposit.mockReset();
     coinchainStakingMock.withdraw.mockReset();
