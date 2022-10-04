@@ -214,7 +214,7 @@ describe('Request Tests', () => {
           removed: false,
           address: "address",
           data: "data",
-          topics: [""],
+          topics: ["TokensMinted", ethers.utils.parseEther("500").toString()],
           transactionHash: "txHash",
           logIndex: 1
         }
