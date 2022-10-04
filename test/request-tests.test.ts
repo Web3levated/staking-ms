@@ -9,6 +9,7 @@ import { MintRequest } from 'src/model/MintRequest';
 
 describe('Request Tests', () => {
   let app: INestApplication;
+  const originalEnv = process.env;
 
   const coinchainStakingMock = {
     deposit: jest.fn(),
@@ -21,7 +22,15 @@ describe('Request Tests', () => {
     connect: jest.fn().mockReturnValue(coinchainStakingMock),
   };
 
-  beforeAll(async () => {
+  beforeEach(async () => {
+    jest.resetModules();
+    process.env = {
+      ...originalEnv,
+      COINCHAIN_STAKING_ADDRESS: "0x276f45322E0e1614C80f25faB8b3986DF0dC3777",
+      COINCHAIN_TOKEN_ADDRESS:"0xEA16DC0f1eB0c0f28d74Efceee21DDE735904472",
+      RPC_URL: "testRpcUrl",
+      PRIVATE_KEY: "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+    }
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
@@ -38,6 +47,7 @@ describe('Request Tests', () => {
     coinchainStakingMock.withdraw.mockReset();
     coinchainStakingMock.withdrawNoReward.mockReset();
     coinchainStakingMock.mint.mockReset();
+    process.env = originalEnv;
   });
 
   describe('deposit', () => {
