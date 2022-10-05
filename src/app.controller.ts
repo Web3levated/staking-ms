@@ -28,7 +28,7 @@ export class AppController {
   })
   @ApiBody({type: CreateStakesRequest})
   async createStakes(@Body() request: CreateStakesRequest): Promise<GenericResponse>{
-
+    console.log("request: ", request);
     const depositTxHash = await this.appService.createStakes(request.deposits);
     const response =  {
       requestId: request.requestId,
