@@ -8,6 +8,7 @@ import { GenericResponse } from './model/GenericResponse';
 import { MintRequest } from './model/MintRequest'
 import { ConfigRequest } from './model/ConfigRequest';
 import { request } from 'http';
+import { MintResponse } from './model/MintResponse';
 
 
 @Controller()
@@ -28,7 +29,6 @@ export class AppController {
   })
   @ApiBody({type: CreateStakesRequest})
   async createStakes(@Body() request: CreateStakesRequest): Promise<GenericResponse>{
-    console.log("request: ", request);
     const depositTxHash = await this.appService.createStakes(request.deposits);
     const response =  {
       requestId: request.requestId,
@@ -90,22 +90,18 @@ export class AppController {
  @HttpCode(200)
  @ApiOkResponse({
   description: "Total mint allowance succesfully minted",
-  type: GenericResponse
+  type: MintResponse
  })
  @UseFilters()
  @ApiBody({type: MintRequest})
- async mint(@Body() request: MintRequest): Promise<GenericResponse>{
-  const mintTxHash = await this.appService.mint();
-  const response = {
-    requestId: request.requestId,
-    txHash: mintTxHash
-  }
+ async mint(@Body() request: MintRequest): Promise<MintResponse>{
+  const mintResponse = await this.appService.mint(request);
   this.logger.log(JSON.stringify({
     requestId: request.requestId,
     request: request,
-    response: response
+    response: mintResponse
   }));
-    return response;
+    return mintResponse;
  }
 
  @Post('setYieldConfig')

@@ -5,6 +5,8 @@ import { CoinchainStaking } from 'typechain/CoinchainStaking';
 import { Deposit } from './model/CreateStakesRequest';
 import { ConfigRequest } from './model/ConfigRequest';
 import { min } from 'rxjs';
+import { MintRequest } from './model/MintRequest';
+import { MintResponse } from './model/MintResponse';
 
 @Injectable()
 export class AppService {
@@ -46,13 +48,18 @@ export class AppService {
     return withdrawNoRewardTx.hash;
   }
 
-  async mint() : Promise<string> {
+  async mint(request: MintRequest) : Promise<MintResponse> {
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.coinchainStaking.provider);
     let mintTx = await this.coinchainStaking.connect(signer).mint();
     const receipt = await mintTx.wait();
     const tokensMinted = parseInt(ethers.utils.formatEther(receipt.events.pop().topics[1])); 
     console.log('Tokens minted: ', tokensMinted);
-    return mintTx.hash;
+    const response: MintResponse = {
+      requestId: request.requestId,
+      mintAmount: tokensMinted,
+      txHash: mintTx.hash
+    }
+    return response;
   }
 
   async depositIdExists(depositId: number) : Promise<boolean> {

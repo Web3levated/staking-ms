@@ -4,6 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { CreateStakesRequest } from '../src/model/CreateStakesRequest';
 import { ethers } from 'ethers';
+import { APP_PIPE } from '@nestjs/core';
 
 describe('Response Tests', () => {
   let app: INestApplication;
@@ -21,7 +22,7 @@ describe('Response Tests', () => {
   };
 
   beforeEach(async () => {
-    jest.resetModules();
+    // jest.resetModules();
     process.env = {
       ...originalEnv,
       COINCHAIN_STAKING_ADDRESS: '0x276f45322E0e1614C80f25faB8b3986DF0dC3777',
@@ -31,14 +32,14 @@ describe('Response Tests', () => {
         'ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
     };
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [AppModule]
     })
       .overrideProvider('CoinchainStaking')
       .useValue(coinchainStakingWithoutSignerMock)
       .compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ transform: true}));
+    app.useGlobalPipes(new ValidationPipe());
     await app.init();
   });
 
@@ -89,7 +90,7 @@ describe('Response Tests', () => {
         deposits: [
           {
             depositId: 9,
-            user: "BadEthereumAddress",
+            user: ethers.Wallet.createRandom().address,
             amount: "100",
             yieldConfigId: 1,
             depositTime: Math.floor(Date.now() / 1000),
@@ -130,4 +131,94 @@ describe('Response Tests', () => {
       expect(response.status).toEqual(400);
     });
   });
+
+  describe("/unstake", () => {
+    it("Should return 200 for a successful unstake", async () => {
+      coinchainStakingMock.withdraw.mockReturnValue({
+        hash: 'TestTransactionHash', 
+        wait: jest.fn()
+      })
+
+      const testRequest = {
+        requestId: "ae41f5ca-3dbb-4e03-93f1-50e6197215fe",
+        depositId: 1
+      }
+
+      const response = await request(app.getHttpServer())
+        .post("/unstake")
+        .send(testRequest);
+
+      expect(response.status).toEqual(200);
+      expect(response.body.txHash).toEqual('TestTransactionHash');
+    })
+  })
+
+  describe("/unstakeNoReward", () => {
+    it("Should return 200 for a successful unstake", async () => {
+      coinchainStakingMock.withdrawNoReward.mockReturnValue({
+        hash: 'TestTransactionHash', 
+        wait: jest.fn()
+      })
+
+      const testRequest = {
+        requestId: "ae41f5ca-3dbb-4e03-93f1-50e6197215fe",
+        depositId: 1
+      }
+
+      const response = await request(app.getHttpServer())
+        .post("/unstakeNoReward")
+        .send(testRequest);
+
+      expect(response.status).toEqual(200);
+      expect(response.body.txHash).toEqual('TestTransactionHash');
+
+    })
+  })
+
+  describe("/mint", () => {
+    it("Should return 200 for a successful mint", async () => {
+      const mockEvents: ethers.Event[] = [
+        {
+          args: [
+            ethers.utils.parseEther("500")
+          ],
+          removeListener: jest.fn(),
+          getBlock: jest.fn(),
+          getTransaction: jest.fn(),
+          getTransactionReceipt: jest.fn(),
+          blockNumber: 1,
+          blockHash: "BlockHash",
+          transactionIndex: 1,
+          removed: false,
+          address: "address",
+          data: "data",
+          topics: ["TokensMinted", ethers.utils.parseEther("500").toString()],
+          transactionHash: "txHash",
+          logIndex: 1
+        }
+      ]
+      const transactionRecieptMock = jest.fn().mockReturnValue({
+        events: mockEvents
+      });
+
+      coinchainStakingMock.mint.mockReturnValue({
+        hash: 'TestTransactionHash',
+        wait: transactionRecieptMock
+      });
+
+
+      const testRequest = {
+        requestId: "ae41f5ca-3dbb-4e03-93f1-50e6197215fe"
+      }
+
+      const response = await request(app.getHttpServer())
+        .post("/mint")
+        .send(testRequest);
+
+      expect(response.status).toEqual(200);
+      expect(response.body.txHash).toEqual('TestTransactionHash');
+      expect(response.body.mintAmount).toEqual(500);
+    })
+  })
+
 });
