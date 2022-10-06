@@ -16,11 +16,6 @@ export class AppController {
   private readonly logger = new Logger(AppController.name);
   constructor(private readonly appService: AppService) {}
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
-
   @Post('createStakes')
   @HttpCode(200)
   @ApiOkResponse({
@@ -29,11 +24,7 @@ export class AppController {
   })
   @ApiBody({type: CreateStakesRequest})
   async createStakes(@Body() request: CreateStakesRequest): Promise<GenericResponse>{
-    const depositTxHash = await this.appService.createStakes(request.deposits);
-    const response =  {
-      requestId: request.requestId,
-      txHash: depositTxHash
-    };
+    const response = await this.appService.createStakes(request);
     this.logger.log(JSON.stringify({
       requestId: request.requestId,
       request: request,
@@ -51,11 +42,7 @@ export class AppController {
  @ApiBody({type: UnstakeRequest})
  async unstake(@Body() request: UnstakeRequest): Promise<GenericResponse>{
 
-    const unstakeTxHash = await this.appService.withdraw(request.depositId);
-    const response = {
-      requestId: request.requestId,
-      txHash: unstakeTxHash
-    }
+    const response = await this.appService.withdraw(request);
     this.logger.log(JSON.stringify({
       requestId: request.requestId,
       request: request,
@@ -73,11 +60,7 @@ export class AppController {
  @ApiBody({type: UnstakeRequest})
  async unstakeNoReward(@Body() request: UnstakeRequest): Promise<GenericResponse>{
 
-  const unstakeNoRewardTxHash = await this.appService.withdrawNoReward(request.depositId);
-  const response = {
-    requestId: request.requestId,
-    txHash: unstakeNoRewardTxHash
-  }
+  const response = await this.appService.withdrawNoReward(request);
   this.logger.log(JSON.stringify({
     requestId: request.requestId,
     request: request,

@@ -1,15 +1,18 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ethers } from 'ethers';
 import { CoinchainToken } from 'typechain/CoinchainToken';
 import { CoinchainStaking } from 'typechain/CoinchainStaking';
-import { Deposit } from './model/CreateStakesRequest';
+import { CreateStakesRequest, Deposit } from './model/CreateStakesRequest';
 import { ConfigRequest } from './model/ConfigRequest';
 import { min } from 'rxjs';
 import { MintRequest } from './model/MintRequest';
 import { MintResponse } from './model/MintResponse';
+import { GenericResponse } from './model/GenericResponse';
+import { UnstakeRequest } from './model/UnstakeRequest';
 
 @Injectable()
 export class AppService {
+  private readonly logger = new Logger(AppService.name);
   constructor(
     @Inject("CoinchainStaking") 
     private readonly coinchainStaking: CoinchainStaking,
@@ -18,42 +21,82 @@ export class AppService {
     private readonly coinchainToken: CoinchainToken
   ) {}
 
-  getHello(): string {
-    return 'Hello World!';
-  }
 
-  async createStakes(deposits: Deposit[]) : Promise<string> {
+  async createStakes(request: CreateStakesRequest) : Promise<GenericResponse> {
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.coinchainToken.provider);
     // let approvalTx = await this.coinchainToken.connect(signer).approve(this.coinchainStaking.address, ethers.utils.parseEther("1000000"));
     // await approvalTx.wait();
-    let depositTx = await this.coinchainStaking.connect(signer).deposit(deposits.map((deposit) => this.buildDepositPayload(deposit)));
+    this.logger.log("Ethers Call: " + JSON.stringify({
+      contract: "CoinchainStaking",
+      contractAddress: this.coinchainStaking.address,
+      signerAddress: signer.address,
+      method: "deposit", 
+      params: [
+        request.deposits
+      ]
+    }))
+    let depositTx = await this.coinchainStaking.connect(signer).deposit(request.deposits.map((deposit) => this.buildDepositPayload(deposit)));
     await depositTx.wait();
-    return depositTx.hash;
+    const response: GenericResponse = {
+      txHash: depositTx.hash,
+      requestId: request.requestId
+    }
+    return response;
   }
 
-  async withdraw(depositId: number) : Promise<string> {
+  async withdraw(request: UnstakeRequest) : Promise<GenericResponse> {
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.coinchainStaking.provider);
-    let withdrawTx = await this.coinchainStaking.connect(signer).withdraw(depositId);
+    this.logger.log("Ethers Call: " + JSON.stringify({
+      contract: "CoinchainStaking",
+      contractAddress: this.coinchainStaking.address,
+      signerAddress: signer.address,
+      method: "withdraw", 
+      params: [
+        request.depositId
+      ]
+    }))
+    let withdrawTx = await this.coinchainStaking.connect(signer).withdraw(request.depositId);
     await withdrawTx.wait();
-    
-    return withdrawTx.hash;
+    const response: GenericResponse = {
+      requestId: request.requestId,
+      txHash: withdrawTx.hash
+    }
+    return response;
   }
 
-  async withdrawNoReward(depositId: number) : Promise<string> {
+  async withdrawNoReward(request: UnstakeRequest) : Promise<GenericResponse> {
 
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.coinchainStaking.provider);
-    let withdrawNoRewardTx = await this.coinchainStaking.connect(signer).withdrawNoReward(depositId);
+    this.logger.log("Ethers Call: " + JSON.stringify({
+      contract: "CoinchainStaking",
+      contractAddress: this.coinchainStaking.address,
+      signerAddress: signer.address,
+      method: "withdrawNoReward", 
+      params: [
+        request.depositId
+      ]
+    }))
+    let withdrawNoRewardTx = await this.coinchainStaking.connect(signer).withdrawNoReward(request.depositId);
     await withdrawNoRewardTx.wait();
-
-    return withdrawNoRewardTx.hash;
+    const response: GenericResponse = {
+      requestId: request.requestId,
+      txHash: withdrawNoRewardTx.hash
+    }
+    return response;
   }
 
   async mint(request: MintRequest) : Promise<MintResponse> {
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, this.coinchainStaking.provider);
+    this.logger.log("Ethers Call: " + JSON.stringify({
+      contract: "CoinchainStaking",
+      contractAddress: this.coinchainStaking.address,
+      signerAddress: signer.address,
+      method: "mint", 
+      params: []
+    }))
     let mintTx = await this.coinchainStaking.connect(signer).mint();
     const receipt = await mintTx.wait();
     const tokensMinted = parseInt(ethers.utils.formatEther(receipt.events.pop().topics[1])); 
-    console.log('Tokens minted: ', tokensMinted);
     const response: MintResponse = {
       requestId: request.requestId,
       mintAmount: tokensMinted,
