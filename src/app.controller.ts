@@ -1,7 +1,8 @@
 import { Controller, Get, Post, Body, Logger, HttpCode, BadRequestException, UseFilters } from '@nestjs/common';
 
 import { ApiProperty, ApiBody, ApiOkResponse } from "@nestjs/swagger"
-import { AppService } from './app.stakingService';
+// import { AppService } from './app.stakingService';
+import { AppService } from './app.service';
 import { CreateStakesRequest } from './model/CreateStakesRequest';
 import { UnstakeRequest } from './model/UnstakeRequest';
 import { GenericResponse } from './model/GenericResponse';

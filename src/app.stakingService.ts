@@ -35,6 +35,7 @@ export class AppService {
         request.deposits
       ]
     }))
+    let estimatedGas = await this.coinchainStaking.connect(signer).deposit(request.deposits.map((deposit) => this.buildDepositPayload(deposit)));
     let depositTx = await this.coinchainStaking.connect(signer).deposit(request.deposits.map((deposit) => this.buildDepositPayload(deposit)));
     await depositTx.wait();
     const response: GenericResponse = {

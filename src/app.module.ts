@@ -25,6 +25,11 @@ const coinchainTokenFactory = {
   }
 }
 
+const ethersBridge = {
+  provide: "EthersBridge",
+  useValue: 
+}
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -33,7 +38,7 @@ const coinchainTokenFactory = {
   ],
   controllers: [AppController],
   providers: [
-    AppServiceWithoutFireblocks,
+    AppServiceWithFireblocks,
     coinchainStakingFactory,
     coinchainTokenFactory
   ],
