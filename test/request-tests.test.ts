@@ -130,78 +130,86 @@ describe('Request Tests', () => {
       );
     });
 
-    //   it('Should create a single deposit', async () => {
-    //     coinchainStakingMock.deposit.mockReturnValue({
-    //       hash: 'TestTransactionHash',
-    //       wait: jest.fn(),
-    //     });
+      it('Should create a single deposit', async () => {
+        const mockTransactionResponse: CreateTransactionResponse = {
+          id: 'testId',
+          status: 'SUBMITTED',
+        };
+        mockBridge.sendTransaction.mockReturnValue(mockTransactionResponse);
 
-    //     const expectedDepositId1 = 1;
-    //     const expectedDepositId2 = 2;
-    //     const expectedDepositId3 = 3;
-    //     const expectedUserAddress1 = ethers.Wallet.createRandom().address;
-    //     const expectedUserAddress2 = ethers.Wallet.createRandom().address;
-    //     const expectedUserAddress3 = ethers.Wallet.createRandom().address;
-    //     const expectedAmount1 = 100;
-    //     const expectedAmount2 = 200;
-    //     const expectedAmount3 = 300;
-    //     const expectedYieldConfig1 = 1;
-    //     const expectedYieldConfig2 = 2;
-    //     const expectedYieldConfig3 = 3;
-    //     const expectedDepositTime1 = Math.floor(Date.now() / 1000);
-    //     const expectedDepositTime2 = Math.floor(Date.now() / 1000);
-    //     const expectedDepositTime3 = Math.floor(Date.now() / 1000);
-    //     const testRequest: CreateStakesRequest = {
-    //       requestId: 'TestRequestId',
-    //       deposits: [
-    //         {
-    //           depositId: expectedDepositId1,
-    //           user: expectedUserAddress1,
-    //           amount: expectedAmount1,
-    //           yieldConfigId: expectedYieldConfig1,
-    //           depositTime: expectedDepositTime1,
-    //         },
-    //         {
-    //           depositId: expectedDepositId2,
-    //           user: expectedUserAddress2,
-    //           amount: expectedAmount2,
-    //           yieldConfigId: expectedYieldConfig2,
-    //           depositTime: expectedDepositTime2,
-    //         },
-    //         {
-    //           depositId: expectedDepositId3,
-    //           user: expectedUserAddress3,
-    //           amount: expectedAmount3,
-    //           yieldConfigId: expectedYieldConfig3,
-    //           depositTime: expectedDepositTime3,
-    //         },
-    //       ],
-    //     };
+        const expectedDepositId1 = 1;
+        const expectedDepositId2 = 2;
+        const expectedDepositId3 = 3;
+        const expectedUserAddress1 = ethers.Wallet.createRandom().address;
+        const expectedUserAddress2 = ethers.Wallet.createRandom().address;
+        const expectedUserAddress3 = ethers.Wallet.createRandom().address;
+        const expectedAmount1 = 100;
+        const expectedAmount2 = 200;
+        const expectedAmount3 = 300;
+        const expectedYieldConfig1 = 1;
+        const expectedYieldConfig2 = 2;
+        const expectedYieldConfig3 = 3;
+        const expectedDepositTime1 = Math.floor(Date.now() / 1000);
+        const expectedDepositTime2 = Math.floor(Date.now() / 1000);
+        const expectedDepositTime3 = Math.floor(Date.now() / 1000);
+        const testRequest: CreateStakesRequest = {
+          requestId: 'TestRequestId',
+          deposits: [
+            {
+              depositId: expectedDepositId1,
+              user: expectedUserAddress1,
+              amount: expectedAmount1,
+              yieldConfigId: expectedYieldConfig1,
+              depositTime: expectedDepositTime1,
+            },
+            {
+              depositId: expectedDepositId2,
+              user: expectedUserAddress2,
+              amount: expectedAmount2,
+              yieldConfigId: expectedYieldConfig2,
+              depositTime: expectedDepositTime2,
+            },
+            {
+              depositId: expectedDepositId3,
+              user: expectedUserAddress3,
+              amount: expectedAmount3,
+              yieldConfigId: expectedYieldConfig3,
+              depositTime: expectedDepositTime3,
+            },
+          ],
+        };
 
-    //     await request(app.getHttpServer())
-    //       .post('/createStakes')
-    //       .send(testRequest);
+        await request(app.getHttpServer())
+          .post('/createStakes')
+          .send(testRequest);
 
-    //     expect(coinchainStakingMock.deposit.mock.calls.length).toBe(1);
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0].length).toBe(3);
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0][0].depositId).toBe(expectedDepositId1);
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0][0].data.user).toBe(expectedUserAddress1);
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0][0].data.amount).toStrictEqual(ethers.utils.parseEther(expectedAmount1.toString()));
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0][0].data.yieldConfigId).toBe(expectedYieldConfig1);
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0][0].data.depositTime).toBe(expectedDepositTime1);
+        expect(mockBridge.sendTransaction.mock.calls.length).toBe(1);
+        const actualPopulatedTransaction: PopulatedTransaction =
+          mockBridge.sendTransaction.mock.calls[0][0];
+        const actualFunctionData =
+          CoinchainStaking__factory.createInterface().decodeFunctionData(
+            'deposit',
+            actualPopulatedTransaction.data,
+          );
+        expect(actualFunctionData[0].length).toBe(3);
+        expect(actualFunctionData[0][0].depositId).toStrictEqual(ethers.BigNumber.from(expectedDepositId1));
+        expect(actualFunctionData[0][0].data.user).toBe(expectedUserAddress1);
+        expect(actualFunctionData[0][0].data.amount).toStrictEqual(ethers.utils.parseEther(expectedAmount1.toString()));
+        expect(actualFunctionData[0][0].data.yieldConfigId).toStrictEqual(ethers.BigNumber.from(expectedYieldConfig1));
+        expect(actualFunctionData[0][0].data.depositTime).toStrictEqual(ethers.BigNumber.from(expectedDepositTime1));
 
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0][1].depositId).toBe(expectedDepositId2);
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0][1].data.user).toBe(expectedUserAddress2);
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0][1].data.amount).toStrictEqual(ethers.utils.parseEther(expectedAmount2.toString()));
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0][1].data.yieldConfigId).toBe(expectedYieldConfig2);
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0][1].data.depositTime).toBe(expectedDepositTime2);
+        expect(actualFunctionData[0][1].depositId).toStrictEqual(ethers.BigNumber.from(expectedDepositId2));
+        expect(actualFunctionData[0][1].data.user).toBe(expectedUserAddress2);
+        expect(actualFunctionData[0][1].data.amount).toStrictEqual(ethers.utils.parseEther(expectedAmount2.toString()));
+        expect(actualFunctionData[0][1].data.yieldConfigId).toStrictEqual(ethers.BigNumber.from(expectedYieldConfig2));
+        expect(actualFunctionData[0][1].data.depositTime).toStrictEqual(ethers.BigNumber.from(expectedDepositTime2));
 
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0][2].depositId).toBe(expectedDepositId3);
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0][2].data.user).toBe(expectedUserAddress3);
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0][2].data.amount).toStrictEqual(ethers.utils.parseEther(expectedAmount3.toString()));
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0][2].data.yieldConfigId).toBe(expectedYieldConfig3);
-    //     expect(coinchainStakingMock.deposit.mock.calls[0][0][2].data.depositTime).toBe(expectedDepositTime3);
-    //   });
+        expect(actualFunctionData[0][2].depositId).toStrictEqual(ethers.BigNumber.from(expectedDepositId3));
+        expect(actualFunctionData[0][2].data.user).toBe(expectedUserAddress3);
+        expect(actualFunctionData[0][2].data.amount).toStrictEqual(ethers.utils.parseEther(expectedAmount3.toString()));
+        expect(actualFunctionData[0][2].data.yieldConfigId).toStrictEqual(ethers.BigNumber.from(expectedYieldConfig3));
+        expect(actualFunctionData[0][2].data.depositTime).toStrictEqual(ethers.BigNumber.from(expectedDepositTime3));
+      });
     // });
 
     // describe("withdraw", () => {
