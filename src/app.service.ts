@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { time } from 'console';
-import { ethers, PopulatedTransaction } from 'ethers';
+import { ethers, PopulatedTransaction, Transaction, ContractReceipt } from 'ethers';
 import { Chain, EthersBridge, FireblocksSDK } from 'fireblocks-defi-sdk';
 import { CoinchainStaking, CoinchainToken } from 'typechain';
 import { CreateTransactionResponse,  PeerType, TransactionOperation, TransactionArguments } from "fireblocks-sdk";
@@ -32,7 +32,6 @@ export class AppService {
   }
 
   async createStakes(request: CreateStakesRequest) : Promise<GenericResponse> {
-    // console.log(this.coinchainStaking.populateTransaction);
     let res: CreateTransactionResponse;
     let txHash: string;
     try{
@@ -53,29 +52,56 @@ export class AppService {
   async withdraw(request: UnstakeRequest) : Promise<GenericResponse> {
     let res: CreateTransactionResponse;
     let txHash: string;
-    try{
+    try {
       const transaction: PopulatedTransaction = await this.coinchainStaking.populateTransaction.withdraw(request.depositId);
-    }catch(e){
+      res = await this.ethersBridge.sendTransaction(transaction);
+      txHash = await this.ethersBridge.waitForTxHash(res.id);
+    } catch(e) {
       console.log(e);
+      throw e;
     }
     return {
       requestId: request.requestId,
-      txHash: "notimplemented"
+      txHash: txHash
     }
   }
 
   async withdrawNoReward(request: UnstakeRequest) : Promise<GenericResponse> {
+    let res: CreateTransactionResponse;
+    let txHash: string;
+    try {
+      const transaction: PopulatedTransaction = await this.coinchainStaking.populateTransaction.withdrawNoReward(request.depositId);
+      res = await this.ethersBridge.sendTransaction(transaction);
+      txHash = await this.ethersBridge.waitForTxHash(res.id);
+    } catch(e) {
+      throw e;
+    }
     return {
       requestId: request.requestId,
-      txHash: "notimplemented"
+      txHash: txHash
     }
   }
 
   async mint(request: MintRequest) : Promise<MintResponse> {
+    let res: CreateTransactionResponse;
+    let txHash: string;
+    let tokensMinted: number;
+    try {
+
+      const transaction: PopulatedTransaction = await this.coinchainStaking.populateTransaction.mint();
+      res = await this.ethersBridge.sendTransaction(transaction);
+      txHash = await this.ethersBridge.waitForTxHash(res.id);
+      const provider: ethers.providers.Provider = this.coinchainStaking.provider;
+      const response: ethers.providers.TransactionResponse = await provider.getTransaction(txHash);
+      const receipt = await response.wait();
+      tokensMinted = parseFloat(ethers.utils.formatEther(receipt.logs.pop().topics[1]));
+    } catch(e) {
+      throw e;
+    }
     return {
       requestId: request.requestId,
-      txHash: "notimplemented",
-      mintAmount: 0
+      txHash: txHash,
+      mintAmount: tokensMinted
     }
   }
 
