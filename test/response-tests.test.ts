@@ -6,7 +6,7 @@ import { CreateStakesRequest } from '../src/model/CreateStakesRequest';
 import { ethers } from 'ethers';
 import { APP_PIPE } from '@nestjs/core';
 
-describe('Response Tests', () => {
+describe.skip('Response Tests', () => {
   let app: INestApplication;
   const originalEnv = process.env;
 

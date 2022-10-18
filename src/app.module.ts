@@ -6,6 +6,9 @@ import { CoinchainToken__factory } from '../typechain/factories/CoinchainToken__
 import { AppController } from './app.controller';
 import { AppService as AppServiceWithFireblocks } from './app.service';
 import { AppService as AppServiceWithoutFireblocks } from './app.stakingService';
+import * as fs from "fs";
+import { Chain, EthersBridge, FireblocksSDK } from 'fireblocks-defi-sdk';
+
 
 const coinchainStakingFactory = {
   provide: "CoinchainStaking",
@@ -27,7 +30,18 @@ const coinchainTokenFactory = {
 
 const ethersBridge = {
   provide: "EthersBridge",
-  useValue: 
+  useFactory: () => {
+    const apiSecret = fs.readFileSync(process.env.FIREBLOCKS_API_SECRET_PATH, "utf8");
+    const apiKey = process.env.FIREBLOCKS_API_KEY;
+    const fireblocksApiBaseUrl = process.env.FIREBLOCKS_API_BASE_URL;
+    const fireblocksApiClient = new FireblocksSDK(apiSecret, apiKey, fireblocksApiBaseUrl);
+    return new EthersBridge({
+      fireblocksApiClient,
+      vaultAccountId: process.env.FIREBLOCKS_SOURCE_VAULT_ACCOUNT,
+      externalWalletId: process.env.FIREBLOCKS_EXTERNAL_WALLET,
+      chain: Chain.GOERLI
+    });
+  } 
 }
 
 @Module({
@@ -40,7 +54,8 @@ const ethersBridge = {
   providers: [
     AppServiceWithFireblocks,
     coinchainStakingFactory,
-    coinchainTokenFactory
+    coinchainTokenFactory,
+    ethersBridge
   ],
 })
 export class AppModule {}
