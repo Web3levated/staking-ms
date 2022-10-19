@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { CreateStakesRequest } from '../src/model/CreateStakesRequest';
-import { ethers, PopulatedTransaction } from 'ethers';
+import { ethers, PopulatedTransaction, providers } from 'ethers';
 import { UnstakeRequest } from 'src/model/UnstakeRequest';
 import { MintRequest } from 'src/model/MintRequest';
 import { CoinchainStaking__factory } from '../typechain/factories/CoinchainStaking__factory';
@@ -13,24 +13,13 @@ import {
   TransactionOperation,
   TransactionArguments,
 } from 'fireblocks-sdk';
+import { MockProvider } from './apparatus/mock.ethersProvider';
 
 describe('Request Tests', () => {
   let app: INestApplication;
   const originalEnv = process.env;
 
-  // const coinchainStakingMock = {
-  //   deposit: jest.fn(),
-  //   withdraw: jest.fn(),
-  //   withdrawNoReward: jest.fn(),
-  //   mint: jest.fn(),
-  // };
-
-  // const coinchainStakingWithoutSignerMock = {
-  //   connect: jest.fn().mockReturnValue(coinchainStakingMock),
-  // };
-
-  const mockProvider: jest.mock()
-
+  const mockProvider = new MockProvider();
   const testCoinchainStakingFactory: OverrideByFactoryOptions = {
     factory: () =>
       CoinchainStaking__factory.connect(
@@ -68,10 +57,6 @@ describe('Request Tests', () => {
   });
 
   afterEach(async () => {
-    // coinchainStakingMock.deposit.mockReset();
-    // coinchainStakingMock.withdraw.mockReset();
-    // coinchainStakingMock.withdrawNoReward.mockReset();
-    // coinchainStakingMock.mint.mockReset();
     mockBridge.sendTransaction.mockReset();
     mockBridge.waitForTxHash.mockReset();
     process.env = originalEnv;
@@ -84,6 +69,7 @@ describe('Request Tests', () => {
         status: 'SUBMITTED',
       };
       mockBridge.sendTransaction.mockReturnValue(mockTransactionResponse);
+      
 
       const expectedDepositId = 1;
       const expectedUserAddress = ethers.Wallet.createRandom().address;
@@ -274,46 +260,62 @@ describe('Request Tests', () => {
       })
     })
 
-  //   describe("mint", () => {
-  //     it("Should sent a minting request", async () => {
-  //       const mockEvents: ethers.Event[] = [
-  //         {
-  //           args: [
-  //             ethers.utils.parseEther("500")
-  //           ],
-  //           removeListener: jest.fn(),
-  //           getBlock: jest.fn(),
-  //           getTransaction: jest.fn(),
-  //           getTransactionReceipt: jest.fn(),
-  //           blockNumber: 1,
-  //           blockHash: "BlockHash",
-  //           transactionIndex: 1,
-  //           removed: false,
-  //           address: "address",
-  //           data: "data",
-  //           topics: ["TokensMinted", ethers.utils.parseEther("500").toString()],
-  //           transactionHash: "txHash",
-  //           logIndex: 1
-  //         }
-  //       ]
-  //       const transactionRecieptMock = jest.fn().mockReturnValue({
-  //         events: mockEvents
-  //       });
+    describe("mint", () => {
+      it("Should sent a minting request", async () => {
+        const mockEvents: ethers.Event[] = [
+          {
+            args: [
+              ethers.utils.parseEther("500")
+            ],
+            removeListener: jest.fn(),
+            getBlock: jest.fn(),
+            getTransaction: jest.fn(),
+            getTransactionReceipt: jest.fn(),
+            blockNumber: 1,
+            blockHash: "BlockHash",
+            transactionIndex: 1,
+            removed: false,
+            address: "address",
+            data: "data",
+            topics: ["TokensMinted", ethers.utils.parseEther("500").toString()],
+            transactionHash: "txHash",
+            logIndex: 1
+          }
+        ]
 
-  //       coinchainStakingMock.mint.mockReturnValue({
-  //         hash: 'TestTransactionHash',
-  //         wait: transactionRecieptMock
-  //       });
-  //       const testRequest: MintRequest = {
-  //         requestId: "TestRequestId"
-  //       }
+        const transactionRecieptMock = {
+          events: mockEvents,
+          logs: mockEvents
+        };
 
-  //       await request(app.getHttpServer())
-  //         .post('/mint')
-  //         .send(testRequest)
+        const mockEthersTransactionResponse: providers.TransactionResponse = {
+          hash: "MockHash",
+          wait: jest.fn().mockReturnValue(transactionRecieptMock),
+          confirmations: 5,
+          from: "MockFrom",
+          nonce: 0,
+          gasLimit: ethers.constants.One,
+          data: "",
+          value: ethers.constants.Zero,
+          chainId: 1
+        }
 
-  //       expect(coinchainStakingMock.mint.mock.calls.length).toBe(1);
-  //       expect(mockEvents.length).toBe(0);
-  //     })
-  // });
+        const mockTransactionResponse: CreateTransactionResponse = {
+          id: 'testId',
+          status: 'SUBMITTED',
+        };
+        mockBridge.sendTransaction.mockReturnValue(mockTransactionResponse);
+        mockProvider.transactionResponse = mockEthersTransactionResponse;
+        const testRequest: MintRequest = {
+          requestId: "TestRequestId"
+        }
+
+        await request(app.getHttpServer())
+          .post('/mint')
+          .send(testRequest)
+
+        expect(mockBridge.sendTransaction.mock.calls.length).toBe(1);
+        expect(mockEvents.length).toBe(0);
+      })
+  });
 });
