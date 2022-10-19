@@ -2,10 +2,10 @@ import { OverrideByFactoryOptions, Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { CreateStakesRequest } from '../src/model/CreateStakesRequest';
+import { CreateStakesRequest } from '../src/transactions/model/request/CreateStakesRequest';
 import { ethers, PopulatedTransaction } from 'ethers';
-import { UnstakeRequest } from 'src/model/UnstakeRequest';
-import { MintRequest } from 'src/model/MintRequest';
+import { UnstakeRequest } from 'src/transactions/model/request/UnstakeRequest';
+import { MintRequest } from 'src/transactions/model/request/MintRequest';
 import { CoinchainStaking__factory } from '../typechain/factories/CoinchainStaking__factory';
 import {
   CreateTransactionResponse,

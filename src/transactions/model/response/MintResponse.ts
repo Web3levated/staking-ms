@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { GenericResponse } from "./GenericResponse";
+import { GenericTransactionResponse } from "./GenericTransactionResponse";
 
-export class MintResponse extends GenericResponse{
+export class MintResponse extends GenericTransactionResponse{
     @ApiProperty({type: Number, description: "Number of tokens minted"})
     mintAmount: number;
 }

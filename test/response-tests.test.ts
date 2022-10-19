@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { CreateStakesRequest } from '../src/model/CreateStakesRequest';
+import { CreateStakesRequest } from '../src/transactions/model/request/CreateStakesRequest';
 import { ethers } from 'ethers';
 import { APP_PIPE } from '@nestjs/core';
 

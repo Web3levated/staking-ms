@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-// import { IsEthereumAddress } from '../validators/IsEthereumAddress';
-import { IsUUID, IsNotEmpty, IsNumber, IsString, ValidateNested, IsEthereumAddress } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, ValidateNested, IsEthereumAddress } from 'class-validator';
+import { GenericTransactionRequest } from './GenericTransactionRequest';
 import { Type } from 'class-transformer';
 
 export class Deposit{
@@ -30,12 +30,7 @@ export class Deposit{
     depositTime: number;
 }
 
-export class CreateStakesRequest{
-    @IsNotEmpty()
-    @IsUUID()
-    @ApiProperty({type: String, description: "Unique identifier"})
-    requestId: string;
-
+export class CreateStakesRequest extends GenericTransactionRequest{
     @ApiProperty({type: [Deposit], description: "List of deposits to create"})
     @IsNotEmpty()
     @ValidateNested( {each: true} )
