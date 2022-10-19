@@ -23,6 +23,11 @@ describe('View: Response Tests', () => {
       ),
   };
 
+  const mockBridge = {
+    sendTransaction: jest.fn(),
+    waitForTxHash: jest.fn(),
+  };
+
   beforeEach(async () => {
     process.env = {
       ...originalEnv,
@@ -38,6 +43,8 @@ describe('View: Response Tests', () => {
     })
       .overrideProvider('CoinchainStaking')
       .useFactory(testCoinchainStakingFactory)
+      .overrideProvider('EthersBridge')
+      .useValue(mockBridge)
       .compile();
 
     app = moduleFixture.createNestApplication();
