@@ -2,14 +2,14 @@ POST http://localhost:3000/createStakes HTTP/1.1
 Content-Type: application/json
 
 {
-    "requestId" : {{$guid}},
+    "requestId" : "{{$guid}}",
     "deposits" : [
         {
-            "depositId": 1,
+            "depositId": 3,
             "user" : "0xBEf62fCa4E7bC887C295db13Bc4c81D0c3B786eF",
             "amount" : 100,
             "yieldConfigId" : 1,
-            "depositTime" : 1664996203
+            "depositTime" : 1666048594
         }
     ]
 }

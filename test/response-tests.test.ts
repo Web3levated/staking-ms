@@ -1,24 +1,36 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { OverrideByFactoryOptions, Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { CreateStakesRequest } from '../src/model/CreateStakesRequest';
-import { ethers } from 'ethers';
+import { CreateStakesRequest } from '../src/transactions/model/request/CreateStakesRequest';
+import { ethers, providers } from 'ethers';
 import { APP_PIPE } from '@nestjs/core';
+import { MockProvider } from './apparatus/mock.ethersProvider';
+import { CoinchainStaking__factory } from '../typechain/factories/CoinchainStaking__factory';
+import {
+  CreateTransactionResponse,
+  PeerType,
+  TransactionOperation,
+  TransactionArguments,
+} from 'fireblocks-sdk';
+import { MintRequest } from 'src/transactions/model/request/MintRequest';
 
 describe('Response Tests', () => {
   let app: INestApplication;
   const originalEnv = process.env;
 
-  const coinchainStakingMock = {
-    deposit: jest.fn(),
-    withdraw: jest.fn(),
-    withdrawNoReward: jest.fn(),
-    mint: jest.fn(),
+  const mockProvider = new MockProvider();
+  const testCoinchainStakingFactory: OverrideByFactoryOptions = {
+    factory: () =>
+      CoinchainStaking__factory.connect(
+        '0x7e1069AC2C84F79642F4aEDFbc858A26658F008D',
+        mockProvider,
+      ),
   };
 
-  const coinchainStakingWithoutSignerMock = {
-    connect: jest.fn().mockReturnValue(coinchainStakingMock),
+  const mockBridge = {
+    sendTransaction: jest.fn(),
+    waitForTxHash: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -35,7 +47,9 @@ describe('Response Tests', () => {
       imports: [AppModule]
     })
       .overrideProvider('CoinchainStaking')
-      .useValue(coinchainStakingWithoutSignerMock)
+      .useFactory(testCoinchainStakingFactory)
+      .overrideProvider('EthersBridge')
+      .useValue(mockBridge)
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -44,19 +58,20 @@ describe('Response Tests', () => {
   });
 
   afterEach(async () => {
-    coinchainStakingMock.deposit.mockReset();
-    coinchainStakingMock.withdraw.mockReset();
-    coinchainStakingMock.withdrawNoReward.mockReset();
-    coinchainStakingMock.mint.mockReset();
+    mockBridge.sendTransaction.mockReset();
+    mockBridge.waitForTxHash.mockReset();
     process.env = originalEnv;
   });
 
   describe('/createStakes (POST)', () => {
     it('Should return transaction hash with 200 status code', async () => {
-      coinchainStakingMock.deposit.mockReturnValue({
-        hash: 'TestTransactionHash',
-        wait: jest.fn(),
-      });
+
+      const mockTransactionResponse: CreateTransactionResponse = {
+        id: 'testId',
+        status: 'SUBMITTED',
+      };
+      mockBridge.sendTransaction.mockReturnValue(mockTransactionResponse);
+      mockBridge.waitForTxHash.mockReturnValue('TestTransactionHash');
 
       const testRequest: CreateStakesRequest = {
         requestId: 'ae41f5ca-3dbb-4e03-93f1-50e6197215fe',
@@ -80,10 +95,12 @@ describe('Response Tests', () => {
     });
 
     it('Should return error response with 400 status code for bad requestId', async () => {
-      coinchainStakingMock.deposit.mockReturnValue({
-        hash: 'TestTransactionHash',
-        wait: jest.fn(),
-      });
+      const mockTransactionResponse: CreateTransactionResponse = {
+        id: 'testId',
+        status: 'SUBMITTED',
+      };
+      mockBridge.sendTransaction.mockReturnValue(mockTransactionResponse);
+      mockBridge.waitForTxHash.mockReturnValue('TestTransactionHash');
 
       const testRequest = {
         requestId: 'badRequestId',
@@ -106,10 +123,12 @@ describe('Response Tests', () => {
     });
 
     it('Should return error response with 400 status code for bad ethereumAddress', async () => {
-      coinchainStakingMock.deposit.mockReturnValue({
-        hash: 'TestTransactionHash',
-        wait: jest.fn(),
-      });
+      const mockTransactionResponse: CreateTransactionResponse = {
+        id: 'testId',
+        status: 'SUBMITTED',
+      };
+      mockBridge.sendTransaction.mockReturnValue(mockTransactionResponse);
+      mockBridge.waitForTxHash.mockReturnValue('TestTransactionHash');
 
       const testRequest = {
         requestId: 'ae41f5ca-3dbb-4e03-93f1-50e6197215fe',
@@ -134,10 +153,12 @@ describe('Response Tests', () => {
 
   describe("/unstake", () => {
     it("Should return 200 for a successful unstake", async () => {
-      coinchainStakingMock.withdraw.mockReturnValue({
-        hash: 'TestTransactionHash', 
-        wait: jest.fn()
-      })
+      const mockTransactionResponse: CreateTransactionResponse = {
+        id: 'testId',
+        status: 'SUBMITTED',
+      };
+      mockBridge.sendTransaction.mockReturnValue(mockTransactionResponse);
+      mockBridge.waitForTxHash.mockReturnValue('TestTransactionHash');
 
       const testRequest = {
         requestId: "ae41f5ca-3dbb-4e03-93f1-50e6197215fe",
@@ -155,10 +176,12 @@ describe('Response Tests', () => {
 
   describe("/unstakeNoReward", () => {
     it("Should return 200 for a successful unstake", async () => {
-      coinchainStakingMock.withdrawNoReward.mockReturnValue({
-        hash: 'TestTransactionHash', 
-        wait: jest.fn()
-      })
+      const mockTransactionResponse: CreateTransactionResponse = {
+        id: 'testId',
+        status: 'SUBMITTED',
+      };
+      mockBridge.sendTransaction.mockReturnValue(mockTransactionResponse);
+      mockBridge.waitForTxHash.mockReturnValue('TestTransactionHash');
 
       const testRequest = {
         requestId: "ae41f5ca-3dbb-4e03-93f1-50e6197215fe",
@@ -197,14 +220,31 @@ describe('Response Tests', () => {
           logIndex: 1
         }
       ]
-      const transactionRecieptMock = jest.fn().mockReturnValue({
-        events: mockEvents
-      });
+      const transactionRecieptMock = {
+        events: mockEvents,
+        logs: mockEvents
+      };
 
-      coinchainStakingMock.mint.mockReturnValue({
-        hash: 'TestTransactionHash',
-        wait: transactionRecieptMock
-      });
+      const mockEthersTransactionResponse: providers.TransactionResponse = {
+        hash: "MockHash",
+        wait: jest.fn().mockReturnValue(transactionRecieptMock),
+        confirmations: 5,
+        from: "MockFrom",
+        nonce: 0,
+        gasLimit: ethers.constants.One,
+        data: "",
+        value: ethers.constants.Zero,
+        chainId: 1
+      }
+
+      const mockTransactionResponse: CreateTransactionResponse = {
+        id: 'testId',
+        status: 'SUBMITTED',
+      };
+      mockBridge.sendTransaction.mockReturnValue(mockTransactionResponse);
+      mockProvider.transactionResponse = mockEthersTransactionResponse;
+
+      mockBridge.waitForTxHash.mockReturnValue('TestTransactionHash');
 
 
       const testRequest = {

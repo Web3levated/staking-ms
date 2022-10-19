@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
-import { CreateStakesRequest } from '../src/model/CreateStakesRequest';
+import { CreateStakesRequest } from '../src/transactions/model/request/CreateStakesRequest';
 import { ethers } from "ethers";
 
 describe('AppController (e2e)', () => {
