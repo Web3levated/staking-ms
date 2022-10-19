@@ -10,7 +10,7 @@ import { request } from 'http';
 
 
 
-@Controller()
+@Controller('views')
 export class ViewController {
   private readonly logger = new Logger(ViewController.name);
   constructor(private readonly viewService: ViewService) {}

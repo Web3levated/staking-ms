@@ -1,21 +1,21 @@
 import { OverrideByFactoryOptions, Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { CreateStakesRequest } from '../src/transactions/model/request/CreateStakesRequest';
+import { AppModule } from '../../src/app.module';
+import { CreateStakesRequest } from '../../src/transactions/model/request/CreateStakesRequest';
 import { ethers, PopulatedTransaction, providers } from 'ethers';
 import { UnstakeRequest } from 'src/transactions/model/request/UnstakeRequest';
 import { MintRequest } from 'src/transactions/model/request/MintRequest';
-import { CoinchainStaking__factory } from '../typechain/factories/CoinchainStaking__factory';
+import { CoinchainStaking__factory } from '../../typechain/factories/CoinchainStaking__factory';
 import {
   CreateTransactionResponse,
   PeerType,
   TransactionOperation,
   TransactionArguments,
 } from 'fireblocks-sdk';
-import { MockProvider } from './apparatus/mock.ethersProvider';
+import { MockProvider } from '../apparatus/mock.ethersProvider';
 
-describe('Request Tests', () => {
+describe('Transactions: Request Tests', () => {
   let app: INestApplication;
   const originalEnv = process.env;
 
@@ -34,7 +34,7 @@ describe('Request Tests', () => {
   };
 
   beforeEach(async () => {
-    jest.resetModules();
+    // jest.resetModules();
     process.env = {
       ...originalEnv,
       COINCHAIN_STAKING_ADDRESS: '0x276f45322E0e1614C80f25faB8b3986DF0dC3777',
@@ -90,7 +90,7 @@ describe('Request Tests', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/createStakes')
+        .post('/transactions/createStakes')
         .send(testRequest);
 
       expect(mockBridge.sendTransaction.mock.calls.length).toBe(1);
@@ -168,7 +168,7 @@ describe('Request Tests', () => {
         };
 
         await request(app.getHttpServer())
-          .post('/createStakes')
+          .post('/transactions/createStakes')
           .send(testRequest);
 
         expect(mockBridge.sendTransaction.mock.calls.length).toBe(1);
@@ -215,7 +215,7 @@ describe('Request Tests', () => {
         }
 
         await request(app.getHttpServer())
-          .post('/unstake')
+          .post('/transactions/unstake')
           .send(testRequest);
 
         expect(mockBridge.sendTransaction.mock.calls.length).toBe(1);
@@ -245,7 +245,7 @@ describe('Request Tests', () => {
         }
 
         await request(app.getHttpServer())
-          .post('/unstakeNoReward')
+          .post('/transactions/unstakeNoReward')
           .send(testRequest);
 
           expect(mockBridge.sendTransaction.mock.calls.length).toBe(1);
@@ -311,7 +311,7 @@ describe('Request Tests', () => {
         }
 
         await request(app.getHttpServer())
-          .post('/mint')
+          .post('/transactions/mint')
           .send(testRequest)
 
         expect(mockBridge.sendTransaction.mock.calls.length).toBe(1);
