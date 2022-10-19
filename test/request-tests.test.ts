@@ -90,7 +90,7 @@ describe('Request Tests', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/createStakes')
+        .post('/transactions/createStakes')
         .send(testRequest);
 
       expect(mockBridge.sendTransaction.mock.calls.length).toBe(1);
@@ -168,7 +168,7 @@ describe('Request Tests', () => {
         };
 
         await request(app.getHttpServer())
-          .post('/createStakes')
+          .post('/transactions/createStakes')
           .send(testRequest);
 
         expect(mockBridge.sendTransaction.mock.calls.length).toBe(1);
@@ -215,7 +215,7 @@ describe('Request Tests', () => {
         }
 
         await request(app.getHttpServer())
-          .post('/unstake')
+          .post('/transactions/unstake')
           .send(testRequest);
 
         expect(mockBridge.sendTransaction.mock.calls.length).toBe(1);
@@ -245,7 +245,7 @@ describe('Request Tests', () => {
         }
 
         await request(app.getHttpServer())
-          .post('/unstakeNoReward')
+          .post('/transactions/unstakeNoReward')
           .send(testRequest);
 
           expect(mockBridge.sendTransaction.mock.calls.length).toBe(1);
@@ -311,7 +311,7 @@ describe('Request Tests', () => {
         }
 
         await request(app.getHttpServer())
-          .post('/mint')
+          .post('/transactions/mint')
           .send(testRequest)
 
         expect(mockBridge.sendTransaction.mock.calls.length).toBe(1);

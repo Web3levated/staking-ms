@@ -87,7 +87,7 @@ describe('Response Tests', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post('/createStakes')
+        .post('/transactions/createStakes')
         .send(testRequest);
 
       expect(response.status).toEqual(200);
@@ -116,7 +116,7 @@ describe('Response Tests', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post('/createStakes')
+        .post('/transactions/createStakes')
         .send(testRequest);
 
       expect(response.status).toEqual(400);
@@ -144,7 +144,7 @@ describe('Response Tests', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post('/createStakes')
+        .post('/transactions/createStakes')
         .send(testRequest);
 
       expect(response.status).toEqual(400);
@@ -166,7 +166,7 @@ describe('Response Tests', () => {
       }
 
       const response = await request(app.getHttpServer())
-        .post("/unstake")
+        .post("/transactions/unstake")
         .send(testRequest);
 
       expect(response.status).toEqual(200);
@@ -189,7 +189,7 @@ describe('Response Tests', () => {
       }
 
       const response = await request(app.getHttpServer())
-        .post("/unstakeNoReward")
+        .post("/transactions/unstakeNoReward")
         .send(testRequest);
 
       expect(response.status).toEqual(200);
@@ -252,7 +252,7 @@ describe('Response Tests', () => {
       }
 
       const response = await request(app.getHttpServer())
-        .post("/mint")
+        .post("/transactions/mint")
         .send(testRequest);
 
       expect(response.status).toEqual(200);

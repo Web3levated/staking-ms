@@ -8,7 +8,7 @@ import { MintRequest } from './model/request/MintRequest'
 import { MintResponse } from './model/response/MintResponse';
 
 
-@Controller()
+@Controller('transactions')
 export class TransactionsController {
   private readonly logger = new Logger(TransactionsController.name);
   constructor(private readonly transactionService: TransactionService) {}

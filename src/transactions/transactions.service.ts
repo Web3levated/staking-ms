@@ -23,10 +23,6 @@ export class TransactionService {
     private readonly ethersBridge: EthersBridge
   ) {}
 
-  getHello(): string {
-    return 'Hello World!';
-  }
-
   async createStakes(request: CreateStakesRequest) : Promise<GenericTransactionResponse> {
     let res: CreateTransactionResponse;
     let txHash: string;
