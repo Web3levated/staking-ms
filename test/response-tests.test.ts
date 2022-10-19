@@ -2,7 +2,7 @@ import { OverrideByFactoryOptions, Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { CreateStakesRequest } from '../src/model/CreateStakesRequest';
+import { CreateStakesRequest } from '../src/transactions/model/request/CreateStakesRequest';
 import { ethers, providers } from 'ethers';
 import { APP_PIPE } from '@nestjs/core';
 import { MockProvider } from './apparatus/mock.ethersProvider';
@@ -13,7 +13,7 @@ import {
   TransactionOperation,
   TransactionArguments,
 } from 'fireblocks-sdk';
-import { MintRequest } from 'src/model/MintRequest';
+import { MintRequest } from 'src/transactions/model/request/MintRequest';
 
 describe('Response Tests', () => {
   let app: INestApplication;

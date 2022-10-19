@@ -1,21 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { time } from 'console';
-import { ethers, PopulatedTransaction, Transaction, ContractReceipt } from 'ethers';
-import { Chain, EthersBridge, FireblocksSDK } from 'fireblocks-defi-sdk';
+import { ethers, PopulatedTransaction } from 'ethers';
+import { EthersBridge } from 'fireblocks-defi-sdk';
 import { CoinchainStaking, CoinchainToken } from 'typechain';
-import { CreateTransactionResponse,  PeerType, TransactionOperation, TransactionArguments } from "fireblocks-sdk";
-import { MintRequest } from './model/MintRequest';
-import { MintResponse } from './model/MintResponse';
-import { GenericResponse } from './model/GenericResponse';
-import { UnstakeRequest } from './model/UnstakeRequest';
-import { CreateStakesRequest, Deposit } from './model/CreateStakesRequest';
-import { ConfigRequest } from './model/ConfigRequest';
+import { CreateTransactionResponse } from "fireblocks-sdk";
+import { MintRequest } from './model/request/MintRequest';
+import { MintResponse } from './model/response/MintResponse';
+import { GenericTransactionResponse } from './model/response/GenericTransactionResponse';
+import { UnstakeRequest } from './model/request/UnstakeRequest';
+import { CreateStakesRequest, Deposit } from './model/request/CreateStakesRequest';
 
-
-import * as fs from "fs";
 
 @Injectable()
-export class AppService {
+export class TransactionService {
   constructor(
     @Inject("CoinchainStaking") 
     private readonly coinchainStaking: CoinchainStaking,
@@ -31,16 +27,14 @@ export class AppService {
     return 'Hello World!';
   }
 
-  async createStakes(request: CreateStakesRequest) : Promise<GenericResponse> {
+  async createStakes(request: CreateStakesRequest) : Promise<GenericTransactionResponse> {
     let res: CreateTransactionResponse;
     let txHash: string;
     try{
       const transaction: PopulatedTransaction = await this.coinchainStaking.populateTransaction.deposit(request.deposits.map((deposit) => this.buildDepositPayload(deposit)));
       res = await this.ethersBridge.sendTransaction(transaction);
-      console.log(res);
       txHash = await this.ethersBridge.waitForTxHash(res.id);
     }catch(e){
-      console.log(e);
       throw e;
     }
     return {
@@ -49,7 +43,7 @@ export class AppService {
     }
   }
 
-  async withdraw(request: UnstakeRequest) : Promise<GenericResponse> {
+  async withdraw(request: UnstakeRequest) : Promise<GenericTransactionResponse> {
     let res: CreateTransactionResponse;
     let txHash: string;
     try {
@@ -57,7 +51,6 @@ export class AppService {
       res = await this.ethersBridge.sendTransaction(transaction);
       txHash = await this.ethersBridge.waitForTxHash(res.id);
     } catch(e) {
-      console.log(e);
       throw e;
     }
     return {
@@ -66,7 +59,7 @@ export class AppService {
     }
   }
 
-  async withdrawNoReward(request: UnstakeRequest) : Promise<GenericResponse> {
+  async withdrawNoReward(request: UnstakeRequest) : Promise<GenericTransactionResponse> {
     let res: CreateTransactionResponse;
     let txHash: string;
     try {
@@ -87,7 +80,6 @@ export class AppService {
     let txHash: string;
     let tokensMinted: number;
     try {
-
       const transaction: PopulatedTransaction = await this.coinchainStaking.populateTransaction.mint();
       res = await this.ethersBridge.sendTransaction(transaction);
       txHash = await this.ethersBridge.waitForTxHash(res.id);
@@ -103,14 +95,6 @@ export class AppService {
       txHash: txHash,
       mintAmount: tokensMinted
     }
-  }
-
-  async depositIdExists(depositId: number) : Promise<boolean> {
-    return false;
-  }
-
-  async setYieldConfig(config: ConfigRequest) : Promise<string>{
-    return "notimplemented";
   }
 
   private buildDepositPayload(deposit: Deposit) : CoinchainStaking.DepositStruct {
