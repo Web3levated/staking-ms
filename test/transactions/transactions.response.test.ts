@@ -1,12 +1,12 @@
 import { OverrideByFactoryOptions, Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { CreateStakesRequest } from '../src/transactions/model/request/CreateStakesRequest';
+import { AppModule } from '../../src/app.module';
+import { CreateStakesRequest } from '../../src/transactions/model/request/CreateStakesRequest';
 import { ethers, providers } from 'ethers';
 import { APP_PIPE } from '@nestjs/core';
-import { MockProvider } from './apparatus/mock.ethersProvider';
-import { CoinchainStaking__factory } from '../typechain/factories/CoinchainStaking__factory';
+import { MockProvider } from '../apparatus/mock.ethersProvider';
+import { CoinchainStaking__factory } from '../../typechain/factories/CoinchainStaking__factory';
 import {
   CreateTransactionResponse,
   PeerType,
@@ -15,7 +15,7 @@ import {
 } from 'fireblocks-sdk';
 import { MintRequest } from 'src/transactions/model/request/MintRequest';
 
-describe('Response Tests', () => {
+describe('Transactions: Response Tests', () => {
   let app: INestApplication;
   const originalEnv = process.env;
 

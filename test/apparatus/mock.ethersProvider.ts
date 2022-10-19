@@ -1,5 +1,5 @@
 import { BlockWithTransactions } from "@ethersproject/abstract-provider";
-import { BigNumber, BigNumberish, providers } from "ethers";
+import { BigNumber, BigNumberish, ethers, providers } from "ethers";
 import { Deferrable } from "ethers/lib/utils";
 
 export class MockProvider extends providers.Provider{
@@ -7,8 +7,28 @@ export class MockProvider extends providers.Provider{
     public transactionResponse: providers.TransactionResponse;
     public transactionReceipt: providers.TransactionReceipt;
 
+    spyData: Deferrable<providers.TransactionRequest>[];
+    stubResponses: string[]; // encoded stub responses
+
     constructor() {
         super();
+        this.spyData = [];
+        this.stubResponses = [];
+    }
+
+    async getSpyData(): Promise<providers.TransactionRequest[]> {
+        let resolved = this.spyData.map(async (spyData) => await ethers.utils.resolveProperties(spyData));
+        let result: providers.TransactionRequest[] = await Promise.all(resolved);
+        return result;
+    }
+
+    setStubResponses(stubResponses: string[]) {
+        this.stubResponses = stubResponses;
+    }
+
+    reset(){
+        this.stubResponses = [];
+        this.spyData = [];
     }
 
     getNetwork(): Promise<providers.Network> {
@@ -36,7 +56,11 @@ export class MockProvider extends providers.Provider{
         throw new Error("Method not implemented.");
     }
     call(transaction: Deferrable<providers.TransactionRequest>, blockTag?: providers.BlockTag | Promise<providers.BlockTag>): Promise<string> {
-        throw new Error("Method not implemented.");
+        if(this.stubResponses.length == 0){
+            throw new Error("MockProvider: Stub Responses is empty");
+        }
+        this.spyData.push(transaction);
+        return Promise.resolve(this.stubResponses.shift());
     }
     estimateGas(transaction: Deferrable<providers.TransactionRequest>): Promise<BigNumber> {
         throw new Error("Method not implemented.");
@@ -60,8 +84,11 @@ export class MockProvider extends providers.Provider{
     getLogs(filter: providers.Filter): Promise<providers.Log[]> {
         throw new Error("Method not implemented.");
     }
-    resolveName(name: string | Promise<string>): Promise<string> {
-        throw new Error("Method not implemented.");
+    async resolveName(name: string | Promise<string>): Promise<string> {
+        if(!ethers.utils.isAddress(await name)){
+            throw new Error("ProviderMock: ENS resolution not supported")
+        }
+        return Promise.resolve(name);
     }
     lookupAddress(address: string | Promise<string>): Promise<string> {
         throw new Error("Method not implemented.");
@@ -91,7 +118,6 @@ export class MockProvider extends providers.Provider{
         throw new Error("Method not implemented.");
     }
 
-    // Custom methods
-    // setTransactionResponse()
+
 
 }

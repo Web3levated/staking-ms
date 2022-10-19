@@ -37,8 +37,8 @@ export class ViewService {
   }
 
   async getDepositsByUser(request: DepositsByUserRequest) : Promise<DepositsByUserResponse> {
-    let deposits = await this.coinchainStaking.getDepositsByUser(request.requestId);
-    const result: number[] = deposits.map((bigNum) => parseInt(ethers.utils.formatEther(bigNum)));
+    let deposits = await this.coinchainStaking.getDepositsByUser(request.user);
+    const result: number[] = deposits.map((bigNum) => bigNum.toNumber());
     return {
       requestId: request.requestId,
       deposits: result
