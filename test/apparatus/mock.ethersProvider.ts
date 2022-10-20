@@ -6,6 +6,7 @@ export class MockProvider extends providers.Provider{
 
     public transactionResponse: providers.TransactionResponse;
     public transactionReceipt: providers.TransactionReceipt;
+    public getTransactionError: Error;
 
     spyData: Deferrable<providers.TransactionRequest>[];
     stubResponses: string[]; // encoded stub responses
@@ -14,6 +15,9 @@ export class MockProvider extends providers.Provider{
         super();
         this.spyData = [];
         this.stubResponses = [];
+        this.transactionReceipt = undefined;
+        this.transactionResponse = undefined;
+        this.getTransactionError = undefined;
     }
 
     async getSpyData(): Promise<providers.TransactionRequest[]> {
@@ -72,9 +76,11 @@ export class MockProvider extends providers.Provider{
         throw new Error("Method not implemented.");
     }
     getTransaction(transactionHash: string): Promise<providers.TransactionResponse> {
-        if(this.transactionResponse === undefined){
+        if(this.transactionResponse === undefined && this.getTransactionError === undefined){
             throw new Error("ProviderMock: Transaction Receipt not set")
-        } else {
+        } else if(this.getTransactionError != undefined){
+            throw this.getTransactionError;
+        }else {
             return Promise.resolve(this.transactionResponse);
         }
     }
