@@ -108,6 +108,20 @@ describe('View: Response Tests', () => {
       expect(actualResponse.body.exists).toBe(true);
       expect(actualResponse.body.requestId).toBe(testRequest.requestId);
     });
+
+    it('Should return 500 status code', async () => {
+      const testRequest: DepositByIdRequest = {
+        requestId: 'ae41f5ca-3dbb-4e03-93f1-50e6197215fe',
+        depositId: 1,
+      };
+      mockProvider.callError = new Error("Expected test error")
+
+      const actualResponse = await request(app.getHttpServer())
+        .post('/views/depositIdExists')
+        .send(testRequest);
+      expect(actualResponse.status).toBe(500);
+      expect(actualResponse.body.requestId).toBe(testRequest.requestId);
+    });
   });
 
   describe('getPendingRewards', () => {
@@ -131,9 +145,26 @@ describe('View: Response Tests', () => {
       expect(actualResponse.body.requestId).toBe(testRequest.requestId);
       expect(actualResponse.body.rewards).toBe(100);
     });
+
+    it('Should return 500 status code when error encountered', async () => {
+      const testRequest: DepositByIdRequest = {
+        requestId: 'ae41f5ca-3dbb-4e03-93f1-50e6197215fe',
+        depositId: 1,
+      };
+
+      mockProvider.callError = new Error("Expected test error")
+
+      const actualResponse = await request(app.getHttpServer())
+        .post('/views/getPendingRewards')
+        .send(testRequest);
+
+      expect(actualResponse.status).toBe(500);
+      expect(actualResponse.body.requestId).toBe(testRequest.requestId);
+    });
   });
 
   describe('getDepositsByUser', () => {
+
     it('Should return 200 status code and a single depositId', async () => {
       const testRequest: DepositsByUserRequest = {
         requestId: 'ae41f5ca-3dbb-4e03-93f1-50e6197215fe',
@@ -156,6 +187,7 @@ describe('View: Response Tests', () => {
       expect(actualResponse.body.deposits.length).toBe(1);
       expect(actualResponse.body.deposits[0]).toBe(1);
     });
+
     it('Should return 200 status code and a multiple depositIds', async () => {
       const testRequest: DepositsByUserRequest = {
         requestId: 'ae41f5ca-3dbb-4e03-93f1-50e6197215fe',

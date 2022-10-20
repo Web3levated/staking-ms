@@ -7,6 +7,7 @@ export class MockProvider extends providers.Provider{
     public transactionResponse: providers.TransactionResponse;
     public transactionReceipt: providers.TransactionReceipt;
     public getTransactionError: Error;
+    public callError: Error;
 
     spyData: Deferrable<providers.TransactionRequest>[];
     stubResponses: string[]; // encoded stub responses
@@ -18,6 +19,7 @@ export class MockProvider extends providers.Provider{
         this.transactionReceipt = undefined;
         this.transactionResponse = undefined;
         this.getTransactionError = undefined;
+        this.callError = undefined;
     }
 
     async getSpyData(): Promise<providers.TransactionRequest[]> {
@@ -60,6 +62,9 @@ export class MockProvider extends providers.Provider{
         throw new Error("Method not implemented.");
     }
     call(transaction: Deferrable<providers.TransactionRequest>, blockTag?: providers.BlockTag | Promise<providers.BlockTag>): Promise<string> {
+        if(this.callError != undefined){
+            throw this.callError;
+        }
         if(this.stubResponses.length == 0){
             throw new Error("MockProvider: Stub Responses is empty");
         }

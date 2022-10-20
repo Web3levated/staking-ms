@@ -33,6 +33,7 @@ export class TransactionService {
       res = await this.ethersBridge.sendTransaction(transaction);
       txHash = await this.ethersBridge.waitForTxHash(res.id);
     }catch(e){
+      
       this.logger.error(JSON.stringify({
         request: request.requestId,
         error: e.message

@@ -15,7 +15,7 @@ import {
 } from 'fireblocks-sdk';
 import { MockProvider } from '../apparatus/mock.ethersProvider';
 
-describe('Transactions: Request Tests', () => {
+describe.skip('Transactions: Request Tests', () => {
   let app: INestApplication;
   const originalEnv = process.env;
 

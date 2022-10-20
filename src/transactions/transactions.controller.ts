@@ -41,6 +41,8 @@ export class TransactionsController {
     }catch(e){
       if(e instanceof TransactionError){
         throw new FireblocksException(e.requestId, e.fireblocksTxId);
+      }else{
+        throw e;
       }
     }
   }
@@ -69,6 +71,8 @@ export class TransactionsController {
   }catch(e){
     if(e instanceof TransactionError){
       throw new FireblocksException(e.requestId, e.fireblocksTxId);
+    }else{
+      throw e;
     }
   }
  }
@@ -96,6 +100,8 @@ export class TransactionsController {
   } catch(e){
     if(e instanceof TransactionError){
       throw new FireblocksException(e.requestId, e.fireblocksTxId);
+    }else{
+      throw e;
     }
   }
  }
@@ -124,6 +130,8 @@ export class TransactionsController {
   } catch(e){
     if(e instanceof TransactionError){
       throw new FireblocksException(e.requestId, e.fireblocksTxId);
+    }else{
+      throw e;
     }
   }
  }

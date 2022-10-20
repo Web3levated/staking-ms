@@ -9,7 +9,7 @@ import { CoinchainStakingInterface } from 'typechain/CoinchainStaking';
 import { ethers } from 'ethers';
 import { DepositsByUserRequest } from 'src/view/model/request/DepositsByUserRequest';
 
-describe('View: Request Tests', () => {
+describe.skip('View: Request Tests', () => {
   let app: INestApplication;
   const originalEnv = process.env;
   const mockProvider = new MockProvider();
