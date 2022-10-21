@@ -35,6 +35,10 @@ export class MockProvider extends providers.Provider{
     reset(){
         this.stubResponses = [];
         this.spyData = [];
+        this.transactionReceipt = undefined;
+        this.transactionResponse = undefined;
+        this.getTransactionError = undefined;
+        this.callError = undefined;
     }
 
     getNetwork(): Promise<providers.Network> {

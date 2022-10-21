@@ -15,7 +15,7 @@ import {
 } from 'fireblocks-sdk';
 import { MintRequest } from 'src/transactions/model/request/MintRequest';
 
-describe.skip('Transactions: Response Tests', () => {
+describe('Transactions: Response Tests', () => {
   let app: INestApplication;
   const originalEnv = process.env;
 
