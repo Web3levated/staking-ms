@@ -6,6 +6,8 @@ export class MockProvider extends providers.Provider{
 
     public transactionResponse: providers.TransactionResponse;
     public transactionReceipt: providers.TransactionReceipt;
+    public getTransactionError: Error;
+    public callError: Error;
 
     spyData: Deferrable<providers.TransactionRequest>[];
     stubResponses: string[]; // encoded stub responses
@@ -14,6 +16,10 @@ export class MockProvider extends providers.Provider{
         super();
         this.spyData = [];
         this.stubResponses = [];
+        this.transactionReceipt = undefined;
+        this.transactionResponse = undefined;
+        this.getTransactionError = undefined;
+        this.callError = undefined;
     }
 
     async getSpyData(): Promise<providers.TransactionRequest[]> {
@@ -29,6 +35,10 @@ export class MockProvider extends providers.Provider{
     reset(){
         this.stubResponses = [];
         this.spyData = [];
+        this.transactionReceipt = undefined;
+        this.transactionResponse = undefined;
+        this.getTransactionError = undefined;
+        this.callError = undefined;
     }
 
     getNetwork(): Promise<providers.Network> {
@@ -56,6 +66,9 @@ export class MockProvider extends providers.Provider{
         throw new Error("Method not implemented.");
     }
     call(transaction: Deferrable<providers.TransactionRequest>, blockTag?: providers.BlockTag | Promise<providers.BlockTag>): Promise<string> {
+        if(this.callError != undefined){
+            throw this.callError;
+        }
         if(this.stubResponses.length == 0){
             throw new Error("MockProvider: Stub Responses is empty");
         }
@@ -72,9 +85,11 @@ export class MockProvider extends providers.Provider{
         throw new Error("Method not implemented.");
     }
     getTransaction(transactionHash: string): Promise<providers.TransactionResponse> {
-        if(this.transactionResponse === undefined){
+        if(this.transactionResponse === undefined && this.getTransactionError === undefined){
             throw new Error("ProviderMock: Transaction Receipt not set")
-        } else {
+        } else if(this.getTransactionError != undefined){
+            throw this.getTransactionError;
+        }else {
             return Promise.resolve(this.transactionResponse);
         }
     }

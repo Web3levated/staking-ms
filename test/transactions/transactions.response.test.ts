@@ -149,6 +149,39 @@ describe('Transactions: Response Tests', () => {
 
       expect(response.status).toEqual(400);
     });
+
+    it('Should return error response with 500 status code and fireblocks transaction ID', async () => {
+
+      const mockTransactionResponse: CreateTransactionResponse = {
+        id: 'testId',
+        status: 'SUBMITTED',
+      };
+      mockBridge.sendTransaction.mockReturnValue(mockTransactionResponse);
+      mockBridge.waitForTxHash.mockImplementation(() => {
+        throw new Error("Expected test error");
+      });
+
+      const testRequest: CreateStakesRequest = {
+        requestId: 'ae41f5ca-3dbb-4e03-93f1-50e6197215fe',
+        deposits: [
+          {
+            depositId: 9,
+            user: ethers.Wallet.createRandom().address,
+            amount: 100,
+            yieldConfigId: 1,
+            depositTime: Math.floor(Date.now() / 1000),
+          },
+        ],
+      };
+
+      const response = await request(app.getHttpServer())
+        .post('/transactions/createStakes')
+        .send(testRequest);
+
+      expect(response.status).toEqual(500);
+      expect(response.body.requestId).toEqual(testRequest.requestId);
+      expect(response.body.fireblocksTxId).toEqual(mockTransactionResponse.id);
+    });
   });
 
   describe("/unstake", () => {
@@ -172,6 +205,30 @@ describe('Transactions: Response Tests', () => {
       expect(response.status).toEqual(200);
       expect(response.body.txHash).toEqual('TestTransactionHash');
     })
+
+    it("Should return 500 with fireblocks tx ID when an error is encountered", async () => {
+      const mockTransactionResponse: CreateTransactionResponse = {
+        id: 'testId',
+        status: 'SUBMITTED',
+      };
+      mockBridge.sendTransaction.mockReturnValue(mockTransactionResponse);
+      mockBridge.waitForTxHash.mockImplementation(() => {
+        throw new Error("Expected test error");
+      });
+
+      const testRequest = {
+        requestId: "ae41f5ca-3dbb-4e03-93f1-50e6197215fe",
+        depositId: 1
+      }
+
+      const response = await request(app.getHttpServer())
+        .post("/transactions/unstake")
+        .send(testRequest);
+
+      expect(response.status).toEqual(500);
+      expect(response.body.requestId).toEqual(testRequest.requestId);
+      expect(response.body.fireblocksTxId).toEqual(mockTransactionResponse.id);
+    })
   })
 
   describe("/unstakeNoReward", () => {
@@ -194,6 +251,31 @@ describe('Transactions: Response Tests', () => {
 
       expect(response.status).toEqual(200);
       expect(response.body.txHash).toEqual('TestTransactionHash');
+
+    })
+
+    it("Should return 500 with fireblocks tx ID when an error is encountered", async () => {
+      const mockTransactionResponse: CreateTransactionResponse = {
+        id: 'testId',
+        status: 'SUBMITTED',
+      };
+      mockBridge.sendTransaction.mockReturnValue(mockTransactionResponse);
+      mockBridge.waitForTxHash.mockImplementation(() => {
+        throw new Error("Expected test error");
+      });
+
+      const testRequest = {
+        requestId: "ae41f5ca-3dbb-4e03-93f1-50e6197215fe",
+        depositId: 1
+      }
+
+      const response = await request(app.getHttpServer())
+        .post("/transactions/unstakeNoReward")
+        .send(testRequest);
+
+      expect(response.status).toEqual(500);
+      expect(response.body.requestId).toEqual(testRequest.requestId);
+      expect(response.body.fireblocksTxId).toEqual(mockTransactionResponse.id);
 
     })
   })
@@ -259,6 +341,58 @@ describe('Transactions: Response Tests', () => {
       expect(response.body.txHash).toEqual('TestTransactionHash');
       expect(response.body.mintAmount).toEqual(500);
     })
+
+    it("Should return 500 and fireblocks tx ID when an error is encountered", async () => {
+
+      const mockTransactionResponse: CreateTransactionResponse = {
+        id: 'testId',
+        status: 'SUBMITTED',
+      };
+      mockBridge.sendTransaction.mockReturnValue(mockTransactionResponse);
+      mockBridge.waitForTxHash.mockImplementation(() => {
+        throw new Error("Expected test error");
+      });
+
+
+
+      const testRequest = {
+        requestId: "ae41f5ca-3dbb-4e03-93f1-50e6197215fe"
+      }
+
+      const response = await request(app.getHttpServer())
+        .post("/transactions/mint")
+        .send(testRequest);
+
+      expect(response.status).toEqual(500);
+      expect(response.body.requestId).toEqual(testRequest.requestId);
+      expect(response.body.fireblocksTxId).toEqual(mockTransactionResponse.id);
+    })
+
+    it("Should return 200 for a successful mint if error encountered retrieving mint amount", async () => {
+
+      const mockTransactionResponse: CreateTransactionResponse = {
+        id: 'testId',
+        status: 'SUBMITTED',
+      };
+      mockBridge.sendTransaction.mockReturnValue(mockTransactionResponse);
+      mockProvider.getTransactionError = new Error("Expected test error");
+
+      mockBridge.waitForTxHash.mockReturnValue('TestTransactionHash');
+
+
+      const testRequest = {
+        requestId: "ae41f5ca-3dbb-4e03-93f1-50e6197215fe"
+      }
+
+      const response = await request(app.getHttpServer())
+        .post("/transactions/mint")
+        .send(testRequest);
+
+      expect(response.status).toEqual(200);
+      expect(response.body.txHash).toEqual('TestTransactionHash');
+      expect(response.body.mintAmount).toBeUndefined();
+    })
+
   })
 
 });
